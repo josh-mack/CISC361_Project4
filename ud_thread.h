@@ -23,13 +23,16 @@ struct tcb {
 void t_create(void(*function)(int), int thread_id, int priority);
 void t_yield(void);
 void t_init(void);
+void t_shutdown();
+void t_terminate();
 
 
 
 
-
+void clear();
 int append_list_entry(struct tcb* entry, struct tcb* head);
 int remove_list_entry(struct tcb* entry,struct tcb* head);
 int move_list_entry(struct tcb* entry,struct tcb* head1, struct tcb* head2);
-void print_list(struct tcb* head);
+void print_list();
+void appendT(struct tcb **temp);
 

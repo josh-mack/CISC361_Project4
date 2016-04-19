@@ -42,21 +42,16 @@ int main(char* argv){
 	append_list_entry(t7, head_running);
 	append_list_entry(t8, head_running);
 	append_list_entry(t9, head_running);
-	append_list_entry(t10, head_running);
+	append_list_entry(t10, head_ready);
 
-	print_list(head_ready);
-	print_list(head_running);
-
-	
-	remove_list_entry(t5, head_running);
-	move_list_entry(t6, head_running, head_ready);
-	remove_list_entry(t6, head_ready);
+	print_list();
 
 
+printf("Terminate\n");
+	t_terminate(3);
 
-printf("\nREMOVED\n\n");
-	print_list(head_ready);
-	print_list(head_running);
+	print_list();
+	t_shutdown();
 }
 
 
@@ -79,7 +74,7 @@ int remove_list_entry(struct tcb* entry, struct tcb* head)
 		indirect = &((*indirect)->next);
 	}
 	*indirect = entry->next;
-	
+	free(entry);
 }
 
 
@@ -99,27 +94,31 @@ int move_list_entry(struct tcb* entry, struct tcb* head1,struct tcb* head2)
 	}
 	(*indirect2)->next = entry;
 	entry->next = NULL;
-	
-
 
 	
 }
 
 
-void print_list(struct tcb* head){
-	struct tcb **indirect = &head;
+void print_list(){
+	struct tcb **indirect = &head_ready;
 	if((*indirect) != NULL){
 		indirect = &((*indirect)->next);
 	}
 	while((*indirect) != NULL){
-		if(head == head_ready){
-			printf("READY %d\n",(*indirect)->thread_id);
-		}
-		else{
-			printf("RUNNING %d\n",(*indirect)->thread_id);
-		}
+		printf("READY %d\n",(*indirect)->thread_id);
 		indirect = &((*indirect)->next);
 	}
+	
+
+	indirect = &head_running;
+	if((*indirect) != NULL){
+		indirect = &((*indirect)->next);
+	}
+	while((*indirect) != NULL){
+		printf("RUNNING %d\n",(*indirect)->thread_id);
+		indirect = &((*indirect)->next);
+	}
+
 }
 
 int append_list_entry(struct tcb* entry, struct tcb* head)
@@ -130,6 +129,48 @@ int append_list_entry(struct tcb* entry, struct tcb* head)
 	}
 	(*indirect)->next = entry;
 	entry->next = NULL;
-	
+
 }
+void t_shutdown(){
+	struct tcb *temp;
+	while((temp=head_running)!=NULL){
+		head_running = head_running->next;
+		free(temp);
+	}
+	while((temp=head_ready)!=NULL){
+		head_ready = head_ready->next;
+		free(temp);
+	}
+	free(temp);
+
+}
+void t_yield()
+{
+	if(head_ready -> next == NULL){
+		return;
+	}
+	struct tcb *temp = head_running->next;
+	head_running->next = temp->next;
+	append_list_entry(temp,head_ready);
+
+}
+
+void t_terminate(int killID){
+	
+	struct tcb **indirect = &head_running;
+	while((*indirect)->next->thread_id != killID){
+		indirect = &((*indirect)->next);
+	}
+	struct tcb *killNode = (*indirect)->next;
+
+	(*indirect)->next = killNode->next;
+	free(killNode);
+}
+
+
+
+
+
+
+
 
